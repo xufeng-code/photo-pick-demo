@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片显示测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .image-test {
+            margin: 10px 0;
+        }
+        .image-test img {
+            max-width: 300px;
+            max-height: 200px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+        .url-info {
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+            margin-top: 5px;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .loading { background-color: #fff3cd; color: #856404; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ 图片显示测试</h1>
+        
+        <div class="test-section">
+            <h3>1. 服务器连通性测试</h3>
+            <button onclick="testServerHealth()">测试健康检查</button>
+            <span id="health-status" class="status loading">等待测试</span>
+            <div id="health-log" class="log" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Debug接口测试</h3>
+            <button onclick="testDebugInterface()">获取文件列表</button>
+            <span id="debug-status" class="status loading">等待测试</span>
+            <div id="debug-log" class="log" style="display:none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. 静态图片访问测试</h3>
+            <button onclick="testStaticImage()">测试图片访问</button>
+            <span id="static-status" class="status loading">等待测试</span>
+            <div class="image-test">
+                <img id="test-image" style="display:none;" onload="onImageLoad()" onerror="onImageError()">
+                <div id="image-url" class="url-info"></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. 随机图片测试</h3>
+            <button onclick="testRandomImages()">测试多张图片</button>
+            <span id="random-status" class="status loading">等待测试</span>
+            <div id="random-images"></div>
+        </div>
+    </div>
+
+    <script>
+        let fileList = [];
+        
+        function log(elementId, message) {
+            const logElement = document.getElementById(elementId);
+            logElement.style.display = 'block';
+            logElement.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function setStatus(elementId, status, text) {
+            const element = document.getElementById(elementId);
+            element.className = 'status ' + status;
+            element.textContent = text;
+        }
+
+        async function testServerHealth() {
+            try {
+                setStatus('health-status', 'loading', '测试中...');
+                log('health-log', '开始测试服务器健康检查...');
+                
+                const response = await fetch('http://localhost:3000/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    setStatus('health-status', 'success', '✅ 服务器正常');
+                    log('health-log', '✅ 健康检查成功: ' + JSON.stringify(data));
+                } else {
+                    throw new Error('HTTP ' + response.status);
+                }
+            } catch (error) {
+                setStatus('health-status', 'error', '❌ 连接失败');
+                log('health-log', '❌ 健康检查失败: ' + error.message);
+            }
+        }
+
+        async function testDebugInterface() {
+            try {
+                setStatus('debug-status', 'loading', '获取中...');
+                log('debug-log', '开始获取文件列表...');
+                
+                const response = await fetch('http://localhost:3000/__debug/list?dir=preview');
+                const data = await response.json();
+                
+                if (response.ok && data.files) {
+                    fileList = data.files;
+                    setStatus('debug-status', 'success', `✅ 找到 ${data.files.length} 个文件`);
+                    log('debug-log', `✅ 获取到 ${data.files.length} 个文件`);
+                    log('debug-log', '前5个文件: ' + data.files.slice(0, 5).join(', '));
+                } else {
+                    throw new Error('无效响应');
+                }
+            } catch (error) {
+                setStatus('debug-status', 'error', '❌ 获取失败');
+                log('debug-log', '❌ 获取文件列表失败: ' + error.message);
+            }
+        }
+
+        async function testStaticImage() {
+            if (fileList.length === 0) {
+                alert('请先获取文件列表');
+                return;
+            }
+            
+            try {
+                setStatus('static-status', 'loading', '加载中...');
+                
+                const randomFile = fileList[Math.floor(Math.random() * fileList.length)];
+                const imageUrl = `http://localhost:3000/files/preview/${randomFile}`;
+                
+                document.getElementById('image-url').textContent = '图片URL: ' + imageUrl;
+                
+                const img = document.getElementById('test-image');
+                img.src = imageUrl;
+                img.style.display = 'block';
+                
+            } catch (error) {
+                setStatus('static-status', 'error', '❌ 测试失败');
+                console.error('测试静态图片失败:', error);
+            }
+        }
+
+        function onImageLoad() {
+            setStatus('static-status', 'success', '✅ 图片加载成功');
+            console.log('✅ 图片加载成功');
+        }
+
+        function onImageError() {
+            setStatus('static-status', 'error', '❌ 图片加载失败');
+            console.error('❌ 图片加载失败');
+        }
+
+        async function testRandomImages() {
+            if (fileList.length === 0) {
+                alert('请先获取文件列表');
+                return;
+            }
+            
+            setStatus('random-status', 'loading', '测试中...');
+            const container = document.getElementById('random-images');
+            container.innerHTML = '';
+            
+            const testCount = Math.min(5, fileList.length);
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (let i = 0; i < testCount; i++) {
+                const randomFile = fileList[Math.floor(Math.random() * fileList.length)];
+                const imageUrl = `http://localhost:3000/files/preview/${randomFile}`;
+                
+                const div = document.createElement('div');
+                div.className = 'image-test';
+                div.innerHTML = `
+                    <img src="${imageUrl}" style="max-width: 150px; max-height: 100px;" 
+                         onload="this.nextElementSibling.textContent='✅ 加载成功'; window.testImageSuccess();"
+                         onerror="this.nextElementSibling.textContent='❌ 加载失败'; window.testImageError();">
+                    <div class="url-info">加载中... ${randomFile}</div>
+                `;
+                container.appendChild(div);
+            }
+            
+            window.testImageSuccess = () => {
+                successCount++;
+                updateRandomStatus();
+            };
+            
+            window.testImageError = () => {
+                errorCount++;
+                updateRandomStatus();
+            };
+            
+            function updateRandomStatus() {
+                if (successCount + errorCount === testCount) {
+                    if (errorCount === 0) {
+                        setStatus('random-status', 'success', `✅ 全部成功 (${successCount}/${testCount})`);
+                    } else if (successCount > 0) {
+                        setStatus('random-status', 'loading', `⚠️ 部分成功 (${successCount}/${testCount})`);
+                    } else {
+                        setStatus('random-status', 'error', `❌ 全部失败 (0/${testCount})`);
+                    }
+                }
+            }
+        }
+
+        // 页面加载时自动开始测试
+        window.onload = function() {
+            console.log('🚀 开始自动测试...');
+            setTimeout(testServerHealth, 500);
+            setTimeout(testDebugInterface, 1500);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "初步筛选",
+  "navigationStyle": "custom",
+
+  "usingComponents": {
+    "navigation-bar": "/components/navigation-bar/navigation-bar"
+  }
+}

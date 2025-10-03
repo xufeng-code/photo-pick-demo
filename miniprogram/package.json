@@ -1,0 +1,44 @@
+{
+  "name": "xuanzhaopian-ai-demo",
+  "version": "1.0.0",
+  "description": "选照片 AI - H5 Demo + 微信小程序体验版",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "build": "echo 'Static build completed'",
+    "test": "echo 'No tests specified'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.0",
+    "axios": "^1.6.0",
+    "sharp": "^0.32.6",
+    "sqlite3": "^5.1.6",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "photo",
+    "ai",
+    "miniprogram",
+    "wechat",
+    "h5",
+    "demo",
+    "vercel"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/xuanzhaopian-ai.git"
+  },
+  "homepage": "https://xuanzhaopian-ai.vercel.app"
+}

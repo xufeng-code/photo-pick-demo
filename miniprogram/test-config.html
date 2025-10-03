@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>配置测试</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>小程序配置测试</h1>
+    <div id="config-info"></div>
+    <button onclick="testAPI()">测试API连接</button>
+    <div id="result"></div>
+
+    <script>
+        // 模拟小程序环境
+        const wx = {
+            request: function(options) {
+                fetch(options.url, {
+                    method: options.method || 'GET',
+                    headers: options.header || {},
+                    body: options.data ? JSON.stringify(options.data) : undefined
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (options.success) options.success({ data });
+                })
+                .catch(error => {
+                    if (options.fail) options.fail(error);
+                });
+            }
+        };
+
+        // 加载配置
+        const CONFIG = {
+            BASE_URL: 'http://localhost:5000',
+            DEBUG: true
+        };
+
+        document.getElementById('config-info').innerHTML = `
+            <p><strong>当前配置:</strong></p>
+            <p>BASE_URL: ${CONFIG.BASE_URL}</p>
+            <p>DEBUG: ${CONFIG.DEBUG}</p>
+        `;
+
+        function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '正在测试API连接...';
+
+            fetch(CONFIG.BASE_URL + '/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    resultDiv.innerHTML = `
+                        <h3>✅ API连接成功!</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = `
+                        <h3>❌ API连接失败!</h3>
+                        <p>错误: ${error.message}</p>
+                        <p>请确保本地服务器正在运行在 ${CONFIG.BASE_URL}</p>
+                    `;
+                });
+        }
+
+        // 页面加载时自动测试
+        window.onload = function() {
+            testAPI();
+        };
+    </script>
+</body>
+</html>

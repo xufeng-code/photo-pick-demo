@@ -1,0 +1,54 @@
+<!--pages/debug/index.wxml-->
+<view class="container">
+  <view class="header">
+    <text class="title">环境调试信息</text>
+  </view>
+
+  <view class="section">
+    <view class="section-title">当前环境</view>
+    <view class="info-item">
+      <text class="label">环境:</text>
+      <text class="value {{currentEnv === 'development' ? 'success' : 'warning'}}">{{currentEnv}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">API地址:</text>
+      <text class="value">{{baseUrl}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">调试模式:</text>
+      <text class="value {{debugMode ? 'success' : 'normal'}}">{{debugMode ? '开启' : '关闭'}}</text>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{accountInfo}}">
+    <view class="section-title">小程序信息</view>
+    <view class="info-item" wx:if="{{accountInfo.miniProgram}}">
+      <text class="label">版本类型:</text>
+      <text class="value">{{accountInfo.miniProgram.envVersion}}</text>
+    </view>
+    <view class="info-item" wx:if="{{accountInfo.miniProgram}}">
+      <text class="label">版本号:</text>
+      <text class="value">{{accountInfo.miniProgram.version}}</text>
+    </view>
+    <view class="info-item" wx:if="{{accountInfo.plugin}}">
+      <text class="label">插件版本:</text>
+      <text class="value">{{accountInfo.plugin.version}}</text>
+    </view>
+  </view>
+
+  <view class="section" wx:if="{{configInfo}}">
+    <view class="section-title">配置详情</view>
+    <view class="config-box">
+      <text class="config-text">{{configInfo}}</text>
+    </view>
+  </view>
+
+  <view class="actions">
+    <button class="btn primary" bindtap="testApiConnection">测试API连接</button>
+    <button class="btn secondary" bindtap="copyConfig">复制配置</button>
+  </view>
+
+  <view class="tips">
+    <text class="tip-text">💡 如果环境不是 development，请在微信开发者工具中切换到开发版</text>
+  </view>
+</view>

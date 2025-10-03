@@ -1,0 +1,28 @@
+<view class="navigation-bar" style="padding-top: {{statusBarHeight}}px; background-color: {{background || '#000'}};">
+  <view class="navigation-bar__inner {{transparentTitle}}" style="{{navigationBarInnerStyle}}">
+    <view class="navigation-bar__left" style="{{navigationBarLeftStyle}}">
+      <block wx:if="{{back}}">
+        <view class="navigation-bar__buttons navigation-bar__back-btn" bindtap="back">
+          <image class="navigation-bar__button" src="/assets/icons/undo.svg" mode="aspectFit"></image>
+        </view>
+      </block>
+      <block wx:elif="{{home}}">
+        <view class="navigation-bar__buttons" bindtap="toHome">
+          <image class="navigation-bar__button" src="/assets/icons/home.svg" mode="aspectFit"></image>
+        </view>
+      </block>
+      <block wx:else>
+        <slot name="left"></slot>
+      </block>
+    </view>
+    <view class="navigation-bar__center">
+      <view class="navigation-bar__title" style="{{navigationBarTitleStyle}}">
+        {{title}}
+        <text wx:if="{{progress}}" class="navigation-bar__progress">{{progress}}</text>
+      </view>
+    </view>
+    <view class="navigation-bar__right">
+      <slot name="right"></slot>
+    </view>
+  </view>
+</view>

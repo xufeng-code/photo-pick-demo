@@ -1,0 +1,56 @@
+<view class="container">
+  <navigation-bar title="照片详情" back="{{true}}" color="white" background="#000000">
+    <view slot="right" class="nav-actions">
+      <view class="delete-btn" bindtap="onDelete">
+        <image class="delete-icon" src="/assets/icons/delete.svg" mode="aspectFit"></image>
+      </view>
+    </view>
+  </navigation-bar>
+
+  <view class="photo-container">
+    <image class="photo" src="{{photoUrl}}" mode="aspectFit"></image>
+    
+    <!-- 皇冠图标（仅最佳照片显示） -->
+    <image 
+      wx:if="{{photo.id === bestPhoto.id}}" 
+      class="crown-icon" 
+      src="/assets/icons/crown.svg"
+      mode="aspectFit"
+    ></image>
+  </view>
+
+  <view class="info-section">
+    <view class="like-info">
+      <image class="heart-icon" src="/assets/icons/heart-red.svg" mode="aspectFit"></image>
+      <text class="like-count">{{photo.likeCount || 0}} 人喜欢</text>
+    </view>
+    
+    <view class="photo-meta">
+      <text class="meta-item">拍摄时间：{{photo.createTime || '未知'}}</text>
+      <text class="meta-item">文件大小：{{photo.size || '未知'}}</text>
+    </view>
+  </view>
+
+  <view class="comments-section">
+    <view class="section-title">
+      <text>评论 ({{comments.length}})</text>
+    </view>
+    
+    <view class="comments-list" wx:if="{{comments.length > 0}}">
+      <view class="comment-item" wx:for="{{comments}}" wx:key="id">
+        <image class="avatar" src="{{item.avatar || '/assets/icons/default-avatar.svg'}}" mode="aspectFill"></image>
+        <view class="comment-content">
+          <view class="comment-header">
+            <text class="username">{{item.username}}</text>
+            <text class="time">{{item.time}}</text>
+          </view>
+          <text class="comment-text">{{item.content}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="empty-comments" wx:else>
+      <text>暂无评论</text>
+    </view>
+  </view>
+</view>

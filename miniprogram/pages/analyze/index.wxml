@@ -1,0 +1,13 @@
+<navigation-bar title="智能分析中" back="{{false}}" color="white" background="#000000"></navigation-bar>
+<view class="container">
+  <view class="card">
+    <view class="progress-container">
+      <view class="progress-bar-fill" style="width: {{percent}}%"></view>
+    </view>
+    <view class="text-container">
+      <text class="percent-text">{{percent}}%</text>
+      <text class="detail-text">AI智能分析光线、构图、清晰度、美学、氛围...</text>
+    </view>
+  </view>
+  <canvas type="2d" id="compress-canvas" style="position: absolute; left: -9999px; width: 100px; height: 100px;"></canvas>
+</view>

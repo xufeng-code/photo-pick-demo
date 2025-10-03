@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完整图片流程验证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        img {
+            max-width: 300px;
+            max-height: 300px;
+            border: 1px solid #ddd;
+            margin: 10px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .image-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .image-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>完整图片流程验证</h1>
+    
+    <div class="section">
+        <h2>1. 选择图片文件</h2>
+        <input type="file" id="fileInput" multiple accept="image/*">
+        <button onclick="uploadImages()">上传并分析</button>
+        <div id="uploadResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. 上传响应数据</h2>
+        <div id="uploadResponse" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. AI分析结果</h2>
+        <button onclick="getAIResult()" id="aiButton" disabled>获取AI分析结果</button>
+        <div id="aiResult" class="result"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. 图片显示测试</h2>
+        <div id="imageDisplay"></div>
+    </div>
+
+    <div class="section">
+        <h2>5. 推荐页面模拟</h2>
+        <button onclick="simulateRecommendPage()" id="recommendButton" disabled>模拟推荐页面逻辑</button>
+        <div id="recommendResult" class="result"></div>
+    </div>
+
+    <script>
+        let uploadedFiles = [];
+        let aiAnalysisResult = null;
+
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}\n`;
+            
+            element.textContent += logMessage;
+            element.className = `result ${type}`;
+            
+            console.log(message);
+        }
+
+        async function uploadImages() {
+            const fileInput = document.getElementById('fileInput');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                log('uploadResult', '请选择至少一个图片文件', 'error');
+                return;
+            }
+
+            log('uploadResult', `开始上传 ${files.length} 个文件...`);
+
+            const formData = new FormData();
+            for (let i = 0; i < files.length; i++) {
+                formData.append('photos', files[i]);
+                log('uploadResult', `添加文件: ${files[i].name} (${files[i].size} bytes)`);
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    uploadedFiles = result.files;
+                    log('uploadResult', '✅ 上传成功!', 'success');
+                    log('uploadResponse', JSON.stringify(result, null, 2), 'success');
+                    
+                    // 启用AI分析按钮
+                    document.getElementById('aiButton').disabled = false;
+                    
+                    // 显示上传的图片
+                    displayUploadedImages(result.files);
+                    
+                } else {
+                    log('uploadResult', `❌ 上传失败: ${result.error}`, 'error');
+                    log('uploadResponse', JSON.stringify(result, null, 2), 'error');
+                }
+            } catch (error) {
+                log('uploadResult', `❌ 网络错误: ${error.message}`, 'error');
+                console.error('Upload error:', error);
+            }
+        }
+
+        function displayUploadedImages(files) {
+            const container = document.getElementById('imageDisplay');
+            container.innerHTML = '<h3>上传的图片:</h3>';
+            
+            const grid = document.createElement('div');
+            grid.className = 'image-grid';
+            
+            files.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'image-item';
+                
+                item.innerHTML = `
+                    <h4>图片 ${index + 1}: ${file.originalName}</h4>
+                    <p><strong>FileKey:</strong> ${file.fileKey}</p>
+                    <p><strong>大小:</strong> ${file.size} bytes</p>
+                    <div>
+                        <h5>Original URL:</h5>
+                        <p style="word-break: break-all; font-size: 12px;">${file.urls.original}</p>
+                        <img src="${file.urls.original}" alt="Original" onerror="this.style.border='2px solid red'; this.alt='❌ 加载失败';">
+                    </div>
+                    <div>
+                        <h5>Preview URL:</h5>
+                        <p style="word-break: break-all; font-size: 12px;">${file.urls.preview}</p>
+                        <img src="${file.urls.preview}" alt="Preview" onerror="this.style.border='2px solid red'; this.alt='❌ 加载失败';">
+                    </div>
+                    <div>
+                        <h5>Thumb URL:</h5>
+                        <p style="word-break: break-all; font-size: 12px;">${file.urls.thumb}</p>
+                        <img src="${file.urls.thumb}" alt="Thumb" onerror="this.style.border='2px solid red'; this.alt='❌ 加载失败';">
+                    </div>
+                `;
+                
+                grid.appendChild(item);
+            });
+            
+            container.appendChild(grid);
+        }
+
+        async function getAIResult() {
+            if (uploadedFiles.length === 0) {
+                log('aiResult', '请先上传图片', 'error');
+                return;
+            }
+
+            log('aiResult', '开始AI分析...');
+
+            try {
+                const response = await fetch('http://localhost:3000/ai/pick', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        photos: uploadedFiles.map(file => ({
+                            fileKey: file.fileKey,
+                            originalName: file.originalName,
+                            urls: file.urls
+                        }))
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    aiAnalysisResult = result;
+                    log('aiResult', '✅ AI分析完成!', 'success');
+                    log('aiResult', JSON.stringify(result, null, 2), 'success');
+                    
+                    // 启用推荐页面模拟按钮
+                    document.getElementById('recommendButton').disabled = false;
+                    
+                } else {
+                    log('aiResult', `❌ AI分析失败: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log('aiResult', `❌ 网络错误: ${error.message}`, 'error');
+                console.error('AI analysis error:', error);
+            }
+        }
+
+        function simulateRecommendPage() {
+            if (!aiAnalysisResult || uploadedFiles.length === 0) {
+                log('recommendResult', '请先完成上传和AI分析', 'error');
+                return;
+            }
+
+            log('recommendResult', '🎯 模拟推荐页面逻辑...');
+            
+            // 模拟小程序推荐页面的逻辑
+            const photos = uploadedFiles.map(file => ({
+                id: file.fileKey,
+                fileKey: file.fileKey,
+                originalName: file.originalName,
+                urls: file.urls,
+                tempFilePath: null // 小程序中不会有这个
+            }));
+
+            log('recommendResult', `📸 照片数量: ${photos.length}`);
+            log('recommendResult', `🤖 AI分析结果: ${JSON.stringify(aiAnalysisResult, null, 2)}`);
+
+            // 获取AI推荐的最佳照片
+            let bestPhoto = photos[0];
+            let bestTag = '构图';
+            let description = '这张照片表现优秀，值得分享。';
+
+            if (aiAnalysisResult) {
+                // 处理AI分析结果
+                if (aiAnalysisResult.bestPhotoId || aiAnalysisResult.bestId) {
+                    const photoId = aiAnalysisResult.bestPhotoId || aiAnalysisResult.bestId;
+                    const foundPhoto = photos.find(p => p.fileKey === photoId || p.id === photoId);
+                    if (foundPhoto) {
+                        bestPhoto = foundPhoto;
+                        log('recommendResult', `✅ 找到最佳照片 (ID): ${bestPhoto.fileKey}`);
+                    } else {
+                        log('recommendResult', `⚠️ 未找到对应ID的照片: ${photoId}`, 'warning');
+                    }
+                } else if (typeof aiAnalysisResult.bestPhotoIndex === 'number' && 
+                          aiAnalysisResult.bestPhotoIndex >= 0 && 
+                          aiAnalysisResult.bestPhotoIndex < photos.length) {
+                    bestPhoto = photos[aiAnalysisResult.bestPhotoIndex];
+                    log('recommendResult', `✅ 找到最佳照片 (索引 ${aiAnalysisResult.bestPhotoIndex}): ${bestPhoto.fileKey}`);
+                }
+
+                if (aiAnalysisResult.tags && Array.isArray(aiAnalysisResult.tags) && aiAnalysisResult.tags.length > 0) {
+                    bestTag = aiAnalysisResult.tags[0];
+                    log('recommendResult', `🏷️ 使用AI标签: ${bestTag}`);
+                }
+
+                if (aiAnalysisResult.reason && typeof aiAnalysisResult.reason === 'string') {
+                    description = aiAnalysisResult.reason;
+                    log('recommendResult', `📝 使用AI描述: ${description}`);
+                }
+            }
+
+            // 处理图片URL - 模拟推荐页面的逻辑
+            let imageUrl = '';
+            
+            log('recommendResult', `🔍 开始处理图片URL，bestPhoto对象: ${JSON.stringify(bestPhoto, null, 2)}`);
+            
+            // 优先使用带签名的preview URL
+            if (bestPhoto.urls && bestPhoto.urls.preview) {
+                const previewUrl = bestPhoto.urls.preview;
+                if (previewUrl) {
+                    imageUrl = previewUrl; // 在实际小程序中会使用normalizeUrl函数
+                    log('recommendResult', `✅ 使用带签名的preview URL: ${imageUrl}`, 'success');
+                }
+            }
+            
+            // 如果preview URL不可用，尝试使用thumb URL
+            if (!imageUrl && bestPhoto.urls && bestPhoto.urls.thumb) {
+                const thumbUrl = bestPhoto.urls.thumb;
+                if (thumbUrl) {
+                    imageUrl = thumbUrl;
+                    log('recommendResult', `✅ 使用thumb URL作为fallback: ${imageUrl}`, 'success');
+                }
+            }
+            
+            if (!imageUrl) {
+                log('recommendResult', '❌ 无法获取有效的图片URL', 'error');
+                return;
+            }
+            
+            log('recommendResult', `🎯 最终图片URL: ${imageUrl}`);
+            log('recommendResult', `🎯 URL长度: ${imageUrl.length}`);
+            
+            // 显示最终结果
+            const resultContainer = document.getElementById('recommendResult');
+            const resultDiv = document.createElement('div');
+            resultDiv.innerHTML = `
+                <div style="margin-top: 20px; padding: 15px; border: 2px solid #28a745; border-radius: 5px; background: #d4edda;">
+                    <h3>🏆 推荐页面最终结果</h3>
+                    <p><strong>最佳照片:</strong> ${bestPhoto.originalName} (${bestPhoto.fileKey})</p>
+                    <p><strong>标签:</strong> ${bestTag}</p>
+                    <p><strong>描述:</strong> ${description}</p>
+                    <p><strong>图片URL:</strong> <span style="word-break: break-all; font-size: 12px;">${imageUrl}</span></p>
+                    <div style="margin-top: 15px;">
+                        <h4>预览图片:</h4>
+                        <img src="${imageUrl}" alt="推荐图片" style="max-width: 300px; border: 2px solid #28a745;" 
+                             onerror="this.style.border='2px solid red'; this.alt='❌ 图片加载失败';">
+                    </div>
+                </div>
+            `;
+            resultContainer.appendChild(resultDiv);
+        }
+    </script>
+</body>
+</html>

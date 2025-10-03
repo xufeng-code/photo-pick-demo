@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL规范化修复测试</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-case { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .test-title { font-weight: bold; color: #333; }
+        .test-input { color: #666; margin: 5px 0; }
+        .test-output { color: #008000; margin: 5px 0; }
+        .test-error { color: #ff0000; }
+        .test-success { color: #008000; }
+    </style>
+</head>
+<body>
+    <h1>URL规范化修复测试</h1>
+    <p>测试 normalizeUrl 函数是否能正确处理对象和相对路径</p>
+
+    <div id="test-results"></div>
+
+    <script>
+        // 模拟 CONFIG 对象
+        const CONFIG = {
+            base: 'https://smart-cloths-attack.loca.lt'
+        };
+
+        // 复制 normalizeUrl 函数
+        function normalizeUrl(u) {
+            // 允许传入对象 { url, expires } 或 纯字符串
+            if (u && typeof u === 'object' && u.url) {
+                u = u.url;
+            }
+            
+            // 确保是字符串
+            if (typeof u !== 'string') {
+                return '';
+            }
+
+            // 相对路径 -> 拼成 https 绝对地址
+            if (u.startsWith('/')) {
+                return `${CONFIG.base}${u}`;
+            }
+            
+            return u;
+        }
+
+        // 复制 safeStringUrl 函数
+        function safeStringUrl(url) {
+            const normalized = normalizeUrl(url);
+            return normalized || String(url || '');
+        }
+
+        // 测试用例
+        const testCases = [
+            {
+                title: '测试1: 对象格式 {url, expires}',
+                input: { url: '/files/preview/test.jpg?token=abc123', expires: '2024-01-01T00:00:00Z' },
+                expected: 'https://smart-cloths-attack.loca.lt/files/preview/test.jpg?token=abc123'
+            },
+            {
+                title: '测试2: 相对路径字符串',
+                input: '/files/preview/test.jpg?token=abc123',
+                expected: 'https://smart-cloths-attack.loca.lt/files/preview/test.jpg?token=abc123'
+            },
+            {
+                title: '测试3: 绝对URL字符串',
+                input: 'https://example.com/image.jpg',
+                expected: 'https://example.com/image.jpg'
+            },
+            {
+                title: '测试4: null/undefined',
+                input: null,
+                expected: ''
+            },
+            {
+                title: '测试5: 空对象',
+                input: {},
+                expected: ''
+            },
+            {
+                title: '测试6: 数字类型',
+                input: 123,
+                expected: ''
+            },
+            {
+                title: '测试7: [object Object] 情况',
+                input: { toString: () => '[object Object]' },
+                expected: ''
+            }
+        ];
+
+        // 运行测试
+        function runTests() {
+            const resultsDiv = document.getElementById('test-results');
+            let allPassed = true;
+
+            testCases.forEach((testCase, index) => {
+                const result = normalizeUrl(testCase.input);
+                const passed = result === testCase.expected;
+                allPassed = allPassed && passed;
+
+                const testDiv = document.createElement('div');
+                testDiv.className = 'test-case';
+                testDiv.innerHTML = `
+                    <div class="test-title">${testCase.title}</div>
+                    <div class="test-input">输入: ${JSON.stringify(testCase.input)}</div>
+                    <div class="test-output">输出: ${result}</div>
+                    <div class="test-output">期望: ${testCase.expected}</div>
+                    <div class="${passed ? 'test-success' : 'test-error'}">
+                        ${passed ? '✅ 通过' : '❌ 失败'}
+                    </div>
+                `;
+                resultsDiv.appendChild(testDiv);
+            });
+
+            // 添加总结
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'test-case';
+            summaryDiv.innerHTML = `
+                <div class="test-title">测试总结</div>
+                <div class="${allPassed ? 'test-success' : 'test-error'}">
+                    ${allPassed ? '🎉 所有测试通过！' : '⚠️ 部分测试失败'}
+                </div>
+            `;
+            resultsDiv.appendChild(summaryDiv);
+        }
+
+        // 页面加载后运行测试
+        window.onload = runTests;
+    </script>
+</body>
+</html>

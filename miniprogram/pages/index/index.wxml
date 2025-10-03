@@ -1,0 +1,7 @@
+<!--index.wxml-->
+<navigation-bar title="选照片" back="{{true}}" />
+<view class="container">
+  <view class="loading">
+    <text>加载中...</text>
+  </view>
+</view>

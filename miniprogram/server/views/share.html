@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>朋友的相册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .photo-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+        }
+
+        .photo-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+
+        .like-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .like-btn.liked {
+            color: #ff4757;
+        }
+
+        .like-btn:hover {
+            color: #ff4757;
+        }
+
+        .comments-section {
+            margin-top: 20px;
+        }
+
+        .comments-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .comment-form {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .comment-form input,
+        .comment-form textarea {
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-family: inherit;
+        }
+
+        .comment-form textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .comments-list {
+            space-y: 15px;
+        }
+
+        .comment {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .comment-content {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 5px;
+        }
+
+        .comment-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #ff4757;
+        }
+
+        .empty-comments {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-style: italic;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="shareTitle">朋友的相册</h1>
+            <p id="shareDescription">加载中...</p>
+        </div>
+
+        <div id="loadingState" class="loading">
+            <p>正在加载...</p>
+        </div>
+
+        <div id="errorState" class="error" style="display: none;">
+            <p>加载失败，请稍后重试</p>
+        </div>
+
+        <div id="contentState" style="display: none;">
+            <div class="photo-container">
+                <img id="sharePhoto" src="" alt="分享的照片">
+            </div>
+
+            <div class="content">
+                <div class="description" id="photoDescription"></div>
+
+                <div class="actions">
+                    <button class="like-btn" id="likeBtn">
+                        <span id="likeIcon">♡</span>
+                        <span id="likeCount">0</span>
+                    </button>
+                    <span id="commentCount">0 条评论</span>
+                </div>
+
+                <div class="comments-section">
+                    <h3 class="comments-title">评论</h3>
+                    
+                    <div class="comment-form">
+                        <input type="text" id="authorName" placeholder="您的昵称" maxlength="20">
+                        <textarea id="commentContent" placeholder="写下您的评论..." maxlength="200"></textarea>
+                        <button class="submit-btn" id="submitComment">发表评论</button>
+                    </div>
+
+                    <div class="comments-list" id="commentsList">
+                        <div class="empty-comments">暂无评论，快来抢沙发吧！</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 获取分享ID
+        const shareId = window.location.pathname.split('/').pop();
+        let userIdentifier = localStorage.getItem('userIdentifier');
+        
+        // 生成用户标识符
+        if (!userIdentifier) {
+            userIdentifier = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('userIdentifier', userIdentifier);
+        }
+
+        // 页面元素
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const contentState = document.getElementById('contentState');
+        const shareTitle = document.getElementById('shareTitle');
+        const shareDescription = document.getElementById('shareDescription');
+        const sharePhoto = document.getElementById('sharePhoto');
+        const photoDescription = document.getElementById('photoDescription');
+        const likeBtn = document.getElementById('likeBtn');
+        const likeIcon = document.getElementById('likeIcon');
+        const likeCount = document.getElementById('likeCount');
+        const commentCount = document.getElementById('commentCount');
+        const commentsList = document.getElementById('commentsList');
+        const authorName = document.getElementById('authorName');
+        const commentContent = document.getElementById('commentContent');
+        const submitComment = document.getElementById('submitComment');
+
+        let shareData = null;
+        let isLiked = false;
+
+        // 加载分享详情
+        async function loadShareDetails() {
+            try {
+                const response = await fetch(`/share/api/${shareId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    shareData = result.data;
+                    renderShareDetails();
+                    loadingState.style.display = 'none';
+                    contentState.style.display = 'block';
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                console.error('加载分享详情失败:', error);
+                loadingState.style.display = 'none';
+                errorState.style.display = 'block';
+            }
+        }
+
+        // 渲染分享详情
+        function renderShareDetails() {
+            shareTitle.textContent = shareData.title || '朋友的相册';
+            shareDescription.textContent = shareData.description || '';
+            photoDescription.textContent = shareData.description || '';
+            sharePhoto.src = shareData.photo.urls.preview;
+            sharePhoto.alt = shareData.photo.originalName;
+            
+            updateLikeButton();
+            updateCommentCount();
+            renderComments();
+        }
+
+        // 更新点赞按钮
+        function updateLikeButton() {
+            likeCount.textContent = shareData.likesCount;
+        }
+
+        // 更新评论数量
+        function updateCommentCount() {
+            const count = shareData.commentsCount;
+            commentCount.textContent = `${count} 条评论`;
+        }
+
+        // 渲染评论列表
+        function renderComments() {
+            if (shareData.comments.length === 0) {
+                commentsList.innerHTML = '<div class="empty-comments">暂无评论，快来抢沙发吧！</div>';
+                return;
+            }
+
+            commentsList.innerHTML = shareData.comments.map(comment => `
+                <div class="comment">
+                    <div class="comment-author">${comment.author_name}</div>
+                    <div class="comment-content">${comment.content}</div>
+                    <div class="comment-time">${formatTime(comment.created_at)}</div>
+                </div>
+            `).join('');
+        }
+
+        // 格式化时间
+        function formatTime(timeString) {
+            const date = new Date(timeString);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
+            return `${Math.floor(diff / 86400000)}天前`;
+        }
+
+        // 点赞功能
+        likeBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch(`/share/${shareId}/like`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userIdentifier })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    isLiked = result.data.liked;
+                    shareData.likesCount += isLiked ? 1 : -1;
+                    likeIcon.textContent = isLiked ? '♥' : '♡';
+                    likeBtn.classList.toggle('liked', isLiked);
+                    updateLikeButton();
+                }
+            } catch (error) {
+                console.error('点赞失败:', error);
+            }
+        });
+
+        // 提交评论
+        submitComment.addEventListener('click', async () => {
+            const author = authorName.value.trim();
+            const content = commentContent.value.trim();
+            
+            if (!author || !content) {
+                alert('请填写昵称和评论内容');
+                return;
+            }
+            
+            try {
+                submitComment.disabled = true;
+                submitComment.textContent = '发表中...';
+                
+                const response = await fetch(`/share/${shareId}/comment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ authorName: author, content })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    shareData.comments.unshift(result.data);
+                    shareData.commentsCount++;
+                    commentContent.value = '';
+                    updateCommentCount();
+                    renderComments();
+                }
+            } catch (error) {
+                console.error('评论失败:', error);
+                alert('评论失败，请稍后重试');
+            } finally {
+                submitComment.disabled = false;
+                submitComment.textContent = '发表评论';
+            }
+        });
+
+        // 页面加载时获取分享详情
+        loadShareDetails();
+    </script>
+</body>
+</html>

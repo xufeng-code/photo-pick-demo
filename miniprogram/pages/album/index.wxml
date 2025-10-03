@@ -1,0 +1,49 @@
+<navigation-bar title="音存相册" back="{{true}}" color="white" background="#000000" bind:back="onBackTap">
+  <view slot="right" class="nav-right-section">
+    <button open-type="share" class="nav-share-btn">
+      <image class="share-icon" src="/assets/icons/share.svg" mode="aspectFit"></image>
+    </button>
+  </view>
+</navigation-bar>
+
+<view class="container">
+  
+  <!-- 移除重复标题 -->
+
+
+
+  <!-- 无照片时的提示 -->
+  <view wx:if="{{!photos || photos.length == 0}}" class="empty-state">
+    <view class="empty-icon">📷</view>
+    <text class="empty-title">暂无照片</text>
+    <text class="empty-subtitle">请先从首页选择照片，完成筛选后照片会显示在这里</text>
+    <button class="empty-button" bindtap="goToHome">去选择照片</button>
+  </view>
+
+  <view class="photos-grid" wx:elif="{{photos && photos.length > 0}}">
+    <view class="photo-item" wx:for="{{photos}}" wx:key="id">
+      <image 
+        class="photo" 
+        src="{{item.path}}" 
+        mode="aspectFill"
+        bindtap="onPhotoTap"
+        data-photo="{{item}}"
+        data-index="{{index}}"
+      ></image>
+      
+      <!-- 皇冠图标（仅最佳照片显示） -->
+      <image 
+        wx:if="{{item.id === bestPhoto.id}}" 
+        class="crown-icon" 
+        src="/assets/icons/crown.svg"
+        mode="aspectFit"
+      ></image>
+      
+      <!-- 心形点赞图标和数字 -->
+      <view class="like-container">
+        <image class="heart-icon" src="/assets/icons/heart-gray.svg" mode="aspectFit"></image>
+        <text class="like-count">{{item.likeCount || 0}}</text>
+      </view>
+    </view>
+  </view>
+</view>

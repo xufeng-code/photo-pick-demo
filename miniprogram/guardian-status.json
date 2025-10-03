@@ -1,0 +1,11 @@
+{
+  "timestamp": "2025-10-01T15:58:41.031Z",
+  "backend": {
+    "running": true,
+    "restartAttempts": 0
+  },
+  "proxy": {
+    "running": true,
+    "restartAttempts": 3
+  }
+}

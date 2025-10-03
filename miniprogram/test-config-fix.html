@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONFIG.API_BASE 配置测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: #10B981; }
+        .error { color: #EF4444; }
+        .info { color: #3B82F6; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .test-pass {
+            background-color: #d1fae5;
+            border: 1px solid #10B981;
+        }
+        .test-fail {
+            background-color: #fee2e2;
+            border: 1px solid #EF4444;
+        }
+    </style>
+</head>
+<body>
+    <h1>CONFIG.API_BASE 配置测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 配置加载测试</h2>
+        <div id="config-test"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. URL规范化测试</h2>
+        <div id="url-test"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. 实际API调用测试</h2>
+        <div id="api-test"></div>
+        <button onclick="testApiCall()">测试API调用</button>
+    </div>
+
+    <script>
+        // 模拟小程序环境的配置加载
+        function loadConfig() {
+            try {
+                // 模拟环境检测
+                const ENV_CONFIG = {
+                    development: {
+                        BASE_URL: 'http://localhost:3000',
+                        API_BASE: 'http://localhost:3000',
+                        DEBUG: true
+                    },
+                    staging: {
+                        BASE_URL: 'https://smart-cloths-attack.loca.lt',
+                        API_BASE: 'https://smart-cloths-attack.loca.lt',
+                        DEBUG: true
+                    }
+                };
+
+                const CURRENT_ENV = 'development';
+                const CURRENT_CONFIG = ENV_CONFIG[CURRENT_ENV];
+                
+                const CONFIG = {
+                    API_BASE: CURRENT_CONFIG.API_BASE || CURRENT_CONFIG.BASE_URL,
+                    BASE_URL: CURRENT_CONFIG.BASE_URL,
+                    DEBUG: CURRENT_CONFIG.DEBUG,
+                    ...CURRENT_CONFIG
+                };
+
+                return { CONFIG, CURRENT_CONFIG, CURRENT_ENV };
+            } catch (error) {
+                return { error: error.message };
+            }
+        }
+
+        // URL规范化函数
+        function normalizeUrl(u, CONFIG) {
+            if (u && typeof u === 'object' && u.url) {
+                u = u.url;
+            }
+            
+            if (typeof u !== 'string') {
+                return '';
+            }
+
+            if (u.startsWith('/')) {
+                return `${CONFIG.API_BASE}${u}`;
+            }
+            
+            return u;
+        }
+
+        // 测试配置加载
+        function testConfigLoading() {
+            const result = loadConfig();
+            const testDiv = document.getElementById('config-test');
+            
+            if (result.error) {
+                testDiv.innerHTML = `
+                    <div class="test-result test-fail">
+                        <strong>❌ 配置加载失败:</strong> ${result.error}
+                    </div>
+                `;
+                return null;
+            }
+
+            const { CONFIG, CURRENT_CONFIG, CURRENT_ENV } = result;
+            
+            let html = `
+                <div class="test-result test-pass">
+                    <strong>✅ 配置加载成功</strong>
+                </div>
+                <pre>当前环境: ${CURRENT_ENV}
+CONFIG.API_BASE: ${CONFIG.API_BASE}
+CONFIG.BASE_URL: ${CONFIG.BASE_URL}
+CONFIG.DEBUG: ${CONFIG.DEBUG}</pre>
+            `;
+
+            if (!CONFIG.API_BASE) {
+                html += `
+                    <div class="test-result test-fail">
+                        <strong>❌ CONFIG.API_BASE 未定义</strong>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="test-result test-pass">
+                        <strong>✅ CONFIG.API_BASE 已正确设置</strong>
+                    </div>
+                `;
+            }
+
+            testDiv.innerHTML = html;
+            return CONFIG;
+        }
+
+        // 测试URL规范化
+        function testUrlNormalization(CONFIG) {
+            if (!CONFIG) return;
+            
+            const testCases = [
+                { input: '/api/upload', expected: `${CONFIG.API_BASE}/api/upload` },
+                { input: { url: '/api/share' }, expected: `${CONFIG.API_BASE}/api/share` },
+                { input: 'https://example.com/image.jpg', expected: 'https://example.com/image.jpg' },
+                { input: '', expected: '' },
+                { input: null, expected: '' },
+                { input: undefined, expected: '' }
+            ];
+
+            let html = '';
+            let allPassed = true;
+
+            testCases.forEach((testCase, index) => {
+                const result = normalizeUrl(testCase.input, CONFIG);
+                const passed = result === testCase.expected;
+                allPassed = allPassed && passed;
+
+                html += `
+                    <div class="test-result ${passed ? 'test-pass' : 'test-fail'}">
+                        <strong>测试 ${index + 1}: ${passed ? '✅' : '❌'}</strong><br>
+                        输入: <code>${JSON.stringify(testCase.input)}</code><br>
+                        期望: <code>${testCase.expected}</code><br>
+                        实际: <code>${result}</code>
+                    </div>
+                `;
+            });
+
+            if (allPassed) {
+                html = `<div class="test-result test-pass"><strong>✅ 所有URL规范化测试通过</strong></div>` + html;
+            } else {
+                html = `<div class="test-result test-fail"><strong>❌ 部分URL规范化测试失败</strong></div>` + html;
+            }
+
+            document.getElementById('url-test').innerHTML = html;
+        }
+
+        // 测试API调用
+        async function testApiCall() {
+            const result = loadConfig();
+            if (result.error) {
+                document.getElementById('api-test').innerHTML = `
+                    <div class="test-result test-fail">
+                        <strong>❌ 无法加载配置进行API测试</strong>
+                    </div>
+                `;
+                return;
+            }
+
+            const { CONFIG } = result;
+            const testDiv = document.getElementById('api-test');
+            
+            testDiv.innerHTML = '<div class="info">🔄 正在测试API连接...</div>';
+
+            try {
+                // 测试服务器健康检查
+                const healthUrl = `${CONFIG.API_BASE}/health`;
+                console.log('测试URL:', healthUrl);
+                
+                const response = await fetch(healthUrl);
+                const data = await response.text();
+                
+                if (response.ok) {
+                    testDiv.innerHTML = `
+                        <div class="test-result test-pass">
+                            <strong>✅ API连接测试成功</strong><br>
+                            URL: <code>${healthUrl}</code><br>
+                            状态: ${response.status}<br>
+                            响应: <pre>${data}</pre>
+                        </div>
+                    `;
+                } else {
+                    testDiv.innerHTML = `
+                        <div class="test-result test-fail">
+                            <strong>❌ API连接测试失败</strong><br>
+                            URL: <code>${healthUrl}</code><br>
+                            状态: ${response.status}<br>
+                            响应: <pre>${data}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                testDiv.innerHTML = `
+                    <div class="test-result test-fail">
+                        <strong>❌ API连接测试出错</strong><br>
+                        错误: ${error.message}<br>
+                        请确保服务器正在运行在 ${CONFIG.API_BASE}
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载时运行测试
+        window.onload = function() {
+            console.log('开始CONFIG.API_BASE配置测试...');
+            const CONFIG = testConfigLoading();
+            testUrlNormalization(CONFIG);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选照片后端API测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #666;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #0056CC;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        .error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .status.online {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .file-input {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        .file-input:hover {
+            border-color: #007AFF;
+        }
+        .file-list {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 选照片后端API测试工具</h1>
+    
+    <!-- 服务状态 -->
+    <div class="container">
+        <h2>🏥 服务状态</h2>
+        <button onclick="checkHealth()">检查健康状态</button>
+        <span id="serverStatus" class="status offline">离线</span>
+        <div id="healthResult" class="result" style="display: none;"></div>
+    </div>
+
+    <!-- 分享功能测试 -->
+    <div class="container">
+        <h2>📤 分享功能测试</h2>
+        <div class="test-section">
+            <div class="form-group">
+                <label>会话ID:</label>
+                <input type="text" id="sessionId" value="test_session_123" placeholder="输入会话ID">
+            </div>
+            <div class="form-group">
+                <label>选择图片文件:</label>
+                <div class="file-input" onclick="document.getElementById('shareFiles').click()">
+                    <input type="file" id="shareFiles" multiple accept="image/*" style="display: none;" onchange="updateFileList('shareFiles', 'shareFileList')">
+                    点击选择图片文件 (支持多选)
+                </div>
+                <div id="shareFileList" class="file-list"></div>
+            </div>
+            <button onclick="testCreateShare()">创建分享</button>
+            <div id="shareResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>分享操作测试</h3>
+            <div class="form-group">
+                <label>分享ID:</label>
+                <input type="text" id="shareIdInput" placeholder="从创建分享结果中复制">
+            </div>
+            <div class="form-group">
+                <label>照片ID:</label>
+                <input type="text" id="photoIdInput" placeholder="从创建分享结果中复制">
+            </div>
+            <div class="form-group">
+                <label>用户ID:</label>
+                <input type="text" id="userIdInput" value="test_user_123" placeholder="测试用户ID">
+            </div>
+            <button onclick="testLike()">点赞/取消点赞</button>
+            <button onclick="testComment()">添加评论</button>
+            <button onclick="testGetShare()">获取分享</button>
+            <button onclick="testSyncShare()">同步分享</button>
+            <div id="shareOpResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- AI分析测试 -->
+    <div class="container">
+        <h2>🤖 AI照片分析测试</h2>
+        <div class="test-section">
+            <div class="form-group">
+                <label>会话ID:</label>
+                <input type="text" id="aiSessionId" value="ai_test_session_123" placeholder="输入会话ID">
+            </div>
+            <div class="form-group">
+                <label>选择图片文件 (2-10张):</label>
+                <div class="file-input" onclick="document.getElementById('aiFiles').click()">
+                    <input type="file" id="aiFiles" multiple accept="image/*" style="display: none;" onchange="updateFileList('aiFiles', 'aiFileList')">
+                    点击选择图片文件 (需要2-10张)
+                </div>
+                <div id="aiFileList" class="file-list"></div>
+            </div>
+            <button onclick="testAIAnalysis()">开始AI分析</button>
+            <button onclick="testAIHistory()">查看AI历史</button>
+            <div id="aiResult" class="result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000';
+        let currentSessionId = 'test_session_' + Date.now();
+
+        // 更新文件列表显示
+        function updateFileList(inputId, listId) {
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+            const files = Array.from(input.files);
+            
+            if (files.length > 0) {
+                list.innerHTML = `已选择 ${files.length} 个文件: ${files.map(f => f.name).join(', ')}`;
+            } else {
+                list.innerHTML = '';
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            element.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        }
+
+        // HTTP请求工具
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                
+                const data = await response.json();
+                return { response, data, success: response.ok };
+            } catch (error) {
+                return { error: error.message, success: false };
+            }
+        }
+
+        // 文件上传请求
+        async function uploadFiles(url, files, fields = {}) {
+            try {
+                const formData = new FormData();
+                
+                // 添加字段
+                Object.entries(fields).forEach(([key, value]) => {
+                    formData.append(key, value);
+                });
+                
+                // 添加文件
+                Array.from(files).forEach(file => {
+                    formData.append('photos', file);
+                });
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                return { response, data, success: response.ok };
+            } catch (error) {
+                return { error: error.message, success: false };
+            }
+        }
+
+        // 检查服务健康状态
+        async function checkHealth() {
+            const result = await makeRequest(`${BASE_URL}/health`);
+            const statusElement = document.getElementById('serverStatus');
+            
+            if (result.success) {
+                statusElement.textContent = '在线';
+                statusElement.className = 'status online';
+                showResult('healthResult', result.data);
+            } else {
+                statusElement.textContent = '离线';
+                statusElement.className = 'status offline';
+                showResult('healthResult', result.error || '服务器无响应', true);
+            }
+        }
+
+        // 测试创建分享
+        async function testCreateShare() {
+            const sessionId = document.getElementById('sessionId').value;
+            const files = document.getElementById('shareFiles').files;
+            
+            if (!sessionId) {
+                showResult('shareResult', '请输入会话ID', true);
+                return;
+            }
+            
+            if (files.length === 0) {
+                showResult('shareResult', '请选择图片文件', true);
+                return;
+            }
+            
+            const result = await uploadFiles(`${BASE_URL}/share/create`, files, { sessionId });
+            showResult('shareResult', result.data || result.error, !result.success);
+            
+            // 自动填充分享ID和照片ID
+            if (result.success && result.data?.data) {
+                const shareId = result.data.data.shareId;
+                const photoId = result.data.data.photos?.[0]?.id;
+                
+                if (shareId) document.getElementById('shareIdInput').value = shareId;
+                if (photoId) document.getElementById('photoIdInput').value = photoId;
+            }
+        }
+
+        // 测试点赞
+        async function testLike() {
+            const shareId = document.getElementById('shareIdInput').value;
+            const photoId = document.getElementById('photoIdInput').value;
+            const userId = document.getElementById('userIdInput').value;
+            
+            if (!shareId || !photoId || !userId) {
+                showResult('shareOpResult', '请填写完整的分享ID、照片ID和用户ID', true);
+                return;
+            }
+            
+            const result = await makeRequest(`${BASE_URL}/share/like`, {
+                method: 'POST',
+                body: JSON.stringify({ shareId, photoId, userId })
+            });
+            
+            showResult('shareOpResult', result.data || result.error, !result.success);
+        }
+
+        // 测试评论
+        async function testComment() {
+            const shareId = document.getElementById('shareIdInput').value;
+            const photoId = document.getElementById('photoIdInput').value;
+            
+            if (!shareId || !photoId) {
+                showResult('shareOpResult', '请填写分享ID和照片ID', true);
+                return;
+            }
+            
+            const result = await makeRequest(`${BASE_URL}/share/comment`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    shareId,
+                    photoId,
+                    author: '测试用户',
+                    content: '这张照片很棒！测试评论 ' + new Date().toLocaleTimeString()
+                })
+            });
+            
+            showResult('shareOpResult', result.data || result.error, !result.success);
+        }
+
+        // 测试获取分享
+        async function testGetShare() {
+            const shareId = document.getElementById('shareIdInput').value;
+            
+            if (!shareId) {
+                showResult('shareOpResult', '请填写分享ID', true);
+                return;
+            }
+            
+            const result = await makeRequest(`${BASE_URL}/share/${shareId}`);
+            showResult('shareOpResult', result.data || result.error, !result.success);
+        }
+
+        // 测试同步分享
+        async function testSyncShare() {
+            const shareId = document.getElementById('shareIdInput').value;
+            
+            if (!shareId) {
+                showResult('shareOpResult', '请填写分享ID', true);
+                return;
+            }
+            
+            const result = await makeRequest(`${BASE_URL}/share/sync/${shareId}`);
+            showResult('shareOpResult', result.data || result.error, !result.success);
+        }
+
+        // 测试AI分析
+        async function testAIAnalysis() {
+            const sessionId = document.getElementById('aiSessionId').value;
+            const files = document.getElementById('aiFiles').files;
+            
+            if (!sessionId) {
+                showResult('aiResult', '请输入会话ID', true);
+                return;
+            }
+            
+            if (files.length < 2 || files.length > 10) {
+                showResult('aiResult', '请选择2-10张图片文件', true);
+                return;
+            }
+            
+            const result = await uploadFiles(`${BASE_URL}/ai/pick`, files, { sessionId });
+            showResult('aiResult', result.data || result.error, !result.success);
+        }
+
+        // 测试AI历史
+        async function testAIHistory() {
+            const sessionId = document.getElementById('aiSessionId').value;
+            
+            if (!sessionId) {
+                showResult('aiResult', '请输入会话ID', true);
+                return;
+            }
+            
+            const result = await makeRequest(`${BASE_URL}/ai/history/${sessionId}`);
+            showResult('aiResult', result.data || result.error, !result.success);
+        }
+
+        // 页面加载时自动检查服务状态
+        window.onload = function() {
+            checkHealth();
+            
+            // 设置默认会话ID
+            document.getElementById('sessionId').value = currentSessionId;
+            document.getElementById('aiSessionId').value = currentSessionId;
+        };
+    </script>
+</body>
+</html>

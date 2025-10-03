@@ -1,0 +1,96 @@
+<view class="container">
+  <navigation-bar title="朋友的相册" back="{{true}}" color="white" background="#000000"></navigation-bar>
+
+  <!-- 主要照片显示区域 -->
+  <view class="main-photo-container">
+    <image 
+      class="main-photo" 
+      src="{{currentPhoto.url}}" 
+      mode="aspectFit"
+      bindtap="onPhotoTap"
+    ></image>
+    
+    <!-- 皇冠图标（仅最佳照片显示） -->
+    <image 
+      wx:if="{{currentPhoto.id === bestPhoto.id}}" 
+      class="crown-icon" 
+      src="/assets/icons/crown.svg"
+      mode="aspectFit"
+    ></image>
+  </view>
+
+  <!-- 横向缩略图条 -->
+  <view class="thumbnail-strip">
+    <scroll-view class="thumbnail-scroll" scroll-x="true" show-scrollbar="{{false}}">
+      <view class="thumbnail-list">
+        <view 
+          class="thumbnail-item {{item.id === currentPhoto.id ? 'active' : ''}}" 
+          wx:for="{{photos}}" 
+          wx:key="id"
+          bindtap="onThumbnailTap"
+          data-photo="{{item}}"
+          data-index="{{index}}"
+        >
+          <image class="thumbnail" src="{{item.url}}" mode="aspectFill"></image>
+          <image 
+            wx:if="{{item.id === bestPhoto.id}}" 
+            class="thumbnail-crown" 
+            src="/assets/icons/crown.svg"
+            mode="aspectFit"
+          ></image>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 底部操作区域 -->
+  <view class="bottom-actions">
+    <!-- 点赞按钮 -->
+    <view class="like-section">
+      <view class="like-button {{currentPhoto.isLiked ? 'liked' : ''}}" bindtap="onLike">
+        <image 
+          class="heart-icon" 
+          src="{{currentPhoto.isLiked ? '/assets/icons/heart-red.svg' : '/assets/icons/heart-gray.svg'}}" 
+          mode="aspectFit"
+        ></image>
+      </view>
+      <text class="like-count">{{currentPhoto.likeCount || 0}}</text>
+    </view>
+
+    <!-- 评论输入区域 -->
+    <view class="comment-input-section">
+      <input 
+        class="comment-input" 
+        placeholder="写评论..." 
+        placeholder-class="input-placeholder"
+        value="{{commentText}}"
+        bindinput="onCommentInput"
+        bindconfirm="onSendComment"
+        confirm-type="send"
+      ></input>
+      <view class="send-button {{commentText.length > 0 ? 'active' : ''}}" bindtap="onSendComment">
+        <image class="send-icon" src="/assets/icons/send.svg" mode="aspectFit"></image>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评论列表 -->
+  <view class="comments-section" wx:if="{{currentPhoto.comments && currentPhoto.comments.length > 0}}">
+    <view class="comments-header">
+      <text>评论 ({{currentPhoto.comments.length}})</text>
+    </view>
+    
+    <view class="comments-list">
+      <view class="comment-item" wx:for="{{currentPhoto.comments}}" wx:key="id">
+        <image class="comment-avatar" src="{{item.avatar || '/assets/icons/default-avatar.svg'}}" mode="aspectFill"></image>
+        <view class="comment-content">
+          <view class="comment-header">
+            <text class="comment-username">{{item.username}}</text>
+            <text class="comment-time">{{item.time}}</text>
+          </view>
+          <text class="comment-text">{{item.content}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,235 @@
+.container {
+  min-height: 100vh;
+  background-color: #000000;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(88rpx + env(safe-area-inset-top));
+}
+
+/* 主要照片显示区域 */
+.main-photo-container {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  background-color: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40rpx;
+}
+
+.main-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.crown-icon {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 60rpx;
+  height: 60rpx;
+  z-index: 10;
+}
+
+/* 横向缩略图条 */
+.thumbnail-strip {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 20rpx 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.thumbnail-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.thumbnail-list {
+  display: flex;
+  gap: 20rpx;
+  padding: 0 40rpx;
+}
+
+.thumbnail-item {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  border: 4rpx solid transparent;
+  transition: all 0.3s ease;
+}
+
+.thumbnail-item.active {
+  border-color: #ff6b6b;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-crown {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  width: 24rpx;
+  height: 24rpx;
+}
+
+/* 底部操作区域 */
+.bottom-actions {
+  background-color: rgba(0, 0, 0, 0.9);
+  padding: 30rpx 40rpx;
+  display: flex;
+  align-items: center;
+  gap: 30rpx;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.like-section {
+  display: flex;
+  align-items: center;
+  gap: 15rpx;
+}
+
+.like-button {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 40rpx;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.like-button.liked {
+  background-color: rgba(255, 107, 107, 0.2);
+  transform: scale(1.1);
+}
+
+.heart-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.like-count {
+  font-size: 28rpx;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.comment-input-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 40rpx;
+  padding: 0 30rpx;
+  height: 80rpx;
+}
+
+.comment-input {
+  flex: 1;
+  font-size: 28rpx;
+  color: #ffffff;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.input-placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.send-button {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 30rpx;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  opacity: 0.5;
+}
+
+.send-button.active {
+  background-color: #ff6b6b;
+  opacity: 1;
+}
+
+.send-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+/* 评论区域 */
+.comments-section {
+  flex: 1;
+  background-color: #000000;
+  padding: 40rpx;
+}
+
+.comments-header {
+  margin-bottom: 30rpx;
+}
+
+.comments-header text {
+  font-size: 32rpx;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+}
+
+.comment-item {
+  display: flex;
+  gap: 20rpx;
+}
+
+.comment-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  object-fit: cover;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.comment-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.comment-username {
+  font-size: 26rpx;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.comment-time {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.comment-text {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}

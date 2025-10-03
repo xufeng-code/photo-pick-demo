@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .loading {
+            display: none;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>📤 上传功能测试</h1>
+    
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <p>点击选择图片文件</p>
+        <p>支持 JPG, PNG, WEBP 格式</p>
+    </div>
+    
+    <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+    
+    <div>
+        <button onclick="testUpload()">🚀 测试上传</button>
+        <button onclick="testAI()">🤖 测试AI分析</button>
+        <button onclick="clearResults()">🗑️ 清空结果</button>
+    </div>
+    
+    <div class="loading" id="loading">⏳ 处理中...</div>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://192.168.1.5:3000';
+        let selectedFiles = [];
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            selectedFiles = Array.from(e.target.files);
+            showResult(`已选择 ${selectedFiles.length} 个文件`, 'success');
+        });
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showResult(message, type = 'success') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong><br>${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function testUpload() {
+            if (selectedFiles.length === 0) {
+                showResult('请先选择文件', 'error');
+                return;
+            }
+
+            showLoading(true);
+            
+            try {
+                const formData = new FormData();
+                selectedFiles.forEach(file => {
+                    formData.append('photos', file);
+                });
+
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResult(`✅ 上传成功！<br>文件数量: ${result.success.length}<br>详情: ${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ 上传失败: ${result.message || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ 上传错误: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function testAI() {
+            if (selectedFiles.length === 0) {
+                showResult('请先选择文件', 'error');
+                return;
+            }
+
+            showLoading(true);
+            
+            try {
+                // 先上传文件
+                const formData = new FormData();
+                selectedFiles.forEach(file => {
+                    formData.append('photos', file);
+                });
+
+                const uploadResponse = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const uploadResult = await uploadResponse.json();
+                
+                if (!uploadResponse.ok) {
+                    throw new Error(`上传失败: ${uploadResult.message}`);
+                }
+
+                showResult(`✅ 上传成功，开始AI分析...`, 'success');
+
+                // 然后进行AI分析
+                const aiResponse = await fetch(`${API_BASE}/ai/pick`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        photos: uploadResult.success.map(file => ({
+                            path: file.path,
+                            originalname: file.originalname
+                        }))
+                    })
+                });
+
+                const aiResult = await aiResponse.json();
+                
+                if (aiResponse.ok) {
+                    showResult(`🤖 AI分析成功！<br>结果: ${JSON.stringify(aiResult, null, 2)}`, 'success');
+                } else {
+                    showResult(`❌ AI分析失败: ${aiResult.message || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                showResult(`❌ 测试错误: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // 页面加载时测试服务器连接
+        window.onload = async function() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const result = await response.json();
+                showResult(`🟢 服务器连接正常: ${result.message}`, 'success');
+            } catch (error) {
+                showResult(`🔴 服务器连接失败: ${error.message}`, 'error');
+            }
+        };
+    </script>
+</body>
+</html>

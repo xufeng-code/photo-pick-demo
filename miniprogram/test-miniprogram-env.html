@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小程序环境测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .title {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007AFF;
+        }
+        .section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .label {
+            font-weight: 500;
+            color: #666;
+        }
+        .value {
+            font-weight: bold;
+            color: #333;
+        }
+        .success {
+            color: #28a745;
+        }
+        .warning {
+            color: #ffc107;
+        }
+        .error {
+            color: #dc3545;
+        }
+        .btn {
+            background-color: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn.secondary {
+            background-color: #6c757d;
+        }
+        .btn.secondary:hover {
+            background-color: #545b62;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status.offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🔧 小程序环境配置测试</h1>
+        
+        <div class="section">
+            <h3>📊 当前配置状态</h3>
+            <div class="info-item">
+                <span class="label">本地服务器:</span>
+                <span class="value" id="serverStatus">检测中...</span>
+            </div>
+            <div class="info-item">
+                <span class="label">API地址:</span>
+                <span class="value">http://localhost:5000</span>
+            </div>
+            <div class="info-item">
+                <span class="label">强制环境:</span>
+                <span class="value success">development</span>
+            </div>
+            <div class="info-item">
+                <span class="label">修改状态:</span>
+                <span class="value success">已强制使用开发环境</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>🧪 测试操作</h3>
+            <button class="btn" onclick="testHealthCheck()">测试健康检查</button>
+            <button class="btn" onclick="testAIAPI()">测试AI API</button>
+            <button class="btn secondary" onclick="clearLog()">清空日志</button>
+        </div>
+
+        <div class="section">
+            <h3>📋 测试说明</h3>
+            <p><strong>问题分析:</strong></p>
+            <ul>
+                <li>小程序环境检测器会根据运行环境自动选择配置</li>
+                <li>之前显示旧结果是因为小程序可能运行在 trial/release 环境</li>
+                <li>现在已强制使用 development 环境，指向 http://localhost:5000</li>
+            </ul>
+            <p><strong>测试步骤:</strong></p>
+            <ol>
+                <li>确认本地服务器运行正常</li>
+                <li>在微信开发者工具中打开小程序</li>
+                <li>查看首页显示的环境信息</li>
+                <li>选择照片测试AI分析功能</li>
+            </ol>
+        </div>
+
+        <div class="log" id="testLog">
+            <div>等待测试...</div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logElement = document.getElementById('testLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.color = type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#333';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('testLog').innerHTML = '<div>日志已清空</div>';
+        }
+
+        async function testHealthCheck() {
+            log('开始测试健康检查...', 'info');
+            try {
+                const response = await fetch('http://localhost:5000/api/health');
+                const data = await response.json();
+                log(`✅ 健康检查成功: ${JSON.stringify(data)}`, 'success');
+                document.getElementById('serverStatus').innerHTML = '<span class="status online">在线</span>';
+            } catch (error) {
+                log(`❌ 健康检查失败: ${error.message}`, 'error');
+                document.getElementById('serverStatus').innerHTML = '<span class="status offline">离线</span>';
+            }
+        }
+
+        async function testAIAPI() {
+            log('开始测试AI API...', 'info');
+            try {
+                // 创建测试数据
+                const testData = {
+                    photos: [
+                        {
+                            id: 'test1',
+                            base64: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=',
+                            originalSize: 1024
+                        }
+                    ]
+                };
+
+                const response = await fetch('http://localhost:5000/api/pick', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    log(`✅ AI API测试成功`, 'success');
+                    log(`推荐照片: ${result.recommendedPhoto || '无'}`, 'info');
+                    log(`推荐理由: ${result.reason || '无'}`, 'info');
+                } else {
+                    log(`❌ AI API测试失败: HTTP ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ AI API测试失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时自动测试健康检查
+        window.onload = function() {
+            log('页面加载完成，开始自动测试...', 'info');
+            setTimeout(testHealthCheck, 1000);
+        };
+    </script>
+</body>
+</html>

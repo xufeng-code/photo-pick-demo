@@ -1,0 +1,23 @@
+<view class="container">
+  <!-- 导航栏已移除 -->
+  <view class="content">
+    <text class="title">快速选照片</text>
+    <text class="subtitle">选照片从未如此简单</text>
+    
+    <button class="primary-button" bindtap="onChoosePhotos">选择多张照片</button>
+
+    <block wx:if="{{previewUrl}}">
+      <view style="margin-top: 16px;">上传成功，点击预览：</view>
+      <image src="{{previewUrl}}" mode="widthFix" style="width: 100%; margin-top: 8px;" />
+    </block>
+    
+    <view class="tips">
+      <text class="tip-item">可直接信赖AI的审美，沿用AI帮你筛选的最佳照片</text>
+      <text class="tip-item">也可两两对比，体验筛选的乐趣，pick的照片都将存入相册</text>
+      <text class="tip-item">如果还是非常纠结，可以一键发给朋友帮忙挑选</text>
+    </view>
+    
+    <!-- 隐藏的Canvas用于图片压缩 -->
+    <canvas id="compress-canvas" type="2d" style="position: absolute; left: -9999px; width: 1px; height: 1px;"></canvas>
+  </view>
+</view>

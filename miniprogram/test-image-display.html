@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片显示测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .image-test {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .image-test img {
+            max-width: 300px;
+            max-height: 200px;
+            border: 1px solid #ccc;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .loading { background-color: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>图片显示测试</h1>
+    
+    <div class="test-container">
+        <h2>测试图片URL</h2>
+        <div class="image-test">
+            <h3>原始图片 (HTTP)</h3>
+            <img id="img1" src="http://192.168.1.6:8080/uploads/original/5b4c134a-0b35-4505-91f3-aecb8b167c7a.jpg" alt="测试图片1">
+            <div id="status1" class="status loading">加载中...</div>
+        </div>
+        
+        <div class="image-test">
+            <h3>预览图片 (HTTP)</h3>
+            <img id="img2" src="http://192.168.1.6:8080/uploads/preview/5b4c134a-0b35-4505-91f3-aecb8b167c7a.jpg" alt="测试图片2">
+            <div id="status2" class="status loading">加载中...</div>
+        </div>
+        
+        <div class="image-test">
+            <h3>缩略图 (HTTP)</h3>
+            <img id="img3" src="http://192.168.1.6:8080/uploads/thumb/5b4c134a-0b35-4505-91f3-aecb8b167c7a.jpg" alt="测试图片3">
+            <div id="status3" class="status loading">加载中...</div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>网络连接测试</h2>
+        <button onclick="testNetworkConnection()">测试API连接</button>
+        <div id="networkStatus" class="status loading">点击测试按钮</div>
+    </div>
+
+    <script>
+        // 图片加载测试
+        function setupImageTest(imgId, statusId) {
+            const img = document.getElementById(imgId);
+            const status = document.getElementById(statusId);
+            
+            img.onload = function() {
+                status.className = 'status success';
+                status.textContent = `✅ 加载成功 (${img.naturalWidth}x${img.naturalHeight})`;
+            };
+            
+            img.onerror = function() {
+                status.className = 'status error';
+                status.textContent = '❌ 加载失败';
+            };
+        }
+        
+        // 设置所有图片测试
+        setupImageTest('img1', 'status1');
+        setupImageTest('img2', 'status2');
+        setupImageTest('img3', 'status3');
+        
+        // 网络连接测试
+        async function testNetworkConnection() {
+            const status = document.getElementById('networkStatus');
+            status.className = 'status loading';
+            status.textContent = '测试中...';
+            
+            try {
+                const response = await fetch('http://192.168.1.6:8080/health');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    status.className = 'status success';
+                    status.textContent = `✅ API连接成功: ${JSON.stringify(data)}`;
+                } else {
+                    status.className = 'status error';
+                    status.textContent = `❌ API连接失败: ${response.status}`;
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = `❌ 网络错误: ${error.message}`;
+            }
+        }
+        
+        // 页面加载完成后的信息
+        window.onload = function() {
+            console.log('页面加载完成，开始图片测试');
+        };
+    </script>
+</body>
+</html>

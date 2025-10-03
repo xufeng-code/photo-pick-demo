@@ -1,0 +1,27 @@
+<navigation-bar title="AI推荐" back="{{false}}" color="white" background="#000000"></navigation-bar>
+<view class="container">
+  <view class="content">
+    <!-- 移除重复标题 -->
+
+    <view class="photo-container" bindtap="onPhotoTap">
+      <image class="photo" src="{{imageUrl}}" data-src="{{imageUrl}}" mode="aspectFill" bindload="onImageLoad" binderror="onImageError"></image>
+      <image class="crown-icon" src="/assets/icons/crown.png" mode="aspectFit"></image>
+    </view>
+    <view class="tag-container">
+      <view class="tag">{{bestTag}}</view>
+    </view>
+    <view class="description">我推荐这张，因为{{description}}</view>
+    <view wx:if="{{isDemoData}}" class="demo-notice">⚠️ 演示数据（AI分析失败时的备用结果）</view>
+    <button class="action-button" bindtap="onCompare">去对比 ></button>
+  </view>
+</view>
+
+<!-- 全屏模式 -->
+<view class="fullscreen-modal {{showFullscreen ? 'show' : ''}}" bindtap="onCloseFullscreen">
+  <view class="fullscreen-content" catchtap="onStopPropagation">
+    <image class="fullscreen-image" src="{{imageUrl}}" data-src="{{imageUrl}}" mode="aspectFit" bindload="onImageLoad" binderror="onImageError"></image>
+    <view class="fullscreen-close" bindtap="onCloseFullscreen">
+      <image src="/assets/icons/back.svg" mode="aspectFit"></image>
+    </view>
+  </view>
+</view>

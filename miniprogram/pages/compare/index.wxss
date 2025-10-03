@@ -1,0 +1,387 @@
+/* 页面容器 */
+.container {
+  height: 100vh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(88rpx + env(safe-area-inset-top));
+  box-sizing: border-box;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20rpx;
+  overflow: hidden;
+}
+
+/* 对比容器 */
+.compare-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+  padding: 20rpx 0;
+}
+
+/* 照片容器 */
+.photo-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* 照片框架 - 5184:3456 = 3:2 比例 */
+.photo-frame {
+  width: 100%;
+  max-width: 710rpx; /* 基于屏幕宽度计算的最大宽度 */
+  aspect-ratio: 3/2; /* 5184:3456 = 3:2 */
+  border-radius: 20rpx;
+  overflow: hidden;
+  position: relative;
+  background: #222;
+  transition: transform 0.3s ease;
+}
+
+/* 最佳照片框架 - 粉色边框 */
+.best-frame {
+  border: 4rpx solid #ff69b4;
+  box-shadow: 0 0 20rpx rgba(255, 105, 180, 0.3);
+}
+
+/* 候选照片框架 - 无边框 */
+.candidate-frame {
+  border: none;
+}
+
+/* 照片图片 */
+.photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 照片标签 */
+.photo-tag {
+  position: absolute;
+  bottom: 20rpx;
+  left: 20rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: white;
+  z-index: 10;
+}
+
+/* 最佳标签 - 粉色 */
+.best-tag {
+  background: rgba(255, 105, 180, 0.9);
+  backdrop-filter: blur(10rpx);
+}
+
+/* 候选标签 - 灰色 */
+.candidate-tag {
+  background: rgba(128, 128, 128, 0.9);
+  backdrop-filter: blur(10rpx);
+}
+
+/* 全屏图标 */
+.fullscreen-icon {
+  position: absolute;
+  bottom: 20rpx;
+  right: 20rpx;
+  width: 60rpx;
+  height: 60rpx;
+  background: #000000;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10rpx);
+  border: 2rpx solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.3);
+}
+
+.fullscreen-icon:active {
+  transform: scale(0.9);
+  background: #000000;
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.5);
+}
+
+.fullscreen-icon-img {
+  width: 32rpx;
+  height: 32rpx;
+  /* 移除滤镜，直接使用SVG的白色填充 */
+}
+
+/* 底部操作区域 */
+.bottom-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30rpx 40rpx;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20rpx);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.1);
+  gap: 40rpx;
+}
+
+/* 操作按钮 */
+.action-btn {
+  width: 200rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  border: none;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+/* 撤回按钮 - 深灰色背景白色字体灰白色边框 */
+.undo-btn {
+  background: #333333;
+  color: #ffffff;
+  border: 2rpx solid #cccccc;
+}
+
+.undo-btn:not([disabled]):active {
+  background: #555555;
+  transform: scale(0.95);
+}
+
+.undo-btn[disabled] {
+  background: rgba(51, 51, 51, 0.5);
+  color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(204, 204, 204, 0.5);
+}
+
+/* undo-btn-zero样式，撤回按钮始终保持深灰色背景灰白色边框 */
+.undo-btn-zero {
+  background: #333333 !important;
+  color: #ffffff !important;
+  border: 2rpx solid #cccccc !important;
+}
+
+.undo-btn-zero:not([disabled]):active {
+  background: #555555 !important;
+  color: #ffffff !important;
+}
+
+.undo-btn-zero[disabled] {
+  background: rgba(51, 51, 51, 0.5) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  border-color: rgba(204, 204, 204, 0.5) !important;
+}
+
+/* 保存按钮 */
+.save-btn {
+  background: linear-gradient(135deg, #ff69b4, #ff1493);
+  color: white;
+  box-shadow: 0 4rpx 20rpx rgba(255, 105, 180, 0.3);
+}
+
+.save-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2rpx 10rpx rgba(255, 105, 180, 0.5);
+}
+
+/* 响应式设计 */
+@media (max-width: 750rpx) {
+  .photo-frame {
+    max-width: 90vw;
+  }
+  
+  .content {
+    padding: 10rpx;
+  }
+  
+  .compare-container {
+    gap: 15rpx;
+    padding: 10rpx 0;
+  }
+}
+
+/* 小屏幕适配 */
+@media (max-height: 1200rpx) {
+  .photo-frame {
+    max-width: 85vw;
+  }
+  
+  .compare-container {
+    gap: 10rpx;
+  }
+  
+  .photo-tag {
+    font-size: 22rpx;
+    padding: 6rpx 12rpx;
+    bottom: 15rpx;
+    left: 15rpx;
+  }
+}
+
+/* 滑动动画样式 */
+.swiping-up {
+  transform: translateY(-20rpx) scale(1.02);
+  box-shadow: 0 8rpx 30rpx rgba(255, 105, 180, 0.4);
+}
+
+.swiping-down {
+  transform: translateY(20rpx) scale(0.98);
+  opacity: 0.7;
+}
+
+.swipe-replace {
+  animation: swipeReplace 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 全屏模态框 */
+.fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  /* 确保覆盖整个屏幕 */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.fullscreen-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.fullscreen-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  pointer-events: none; /* 让内容区域不拦截点击事件 */
+}
+
+.fullscreen-movable-area {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: auto; /* 允许movable-area接收触摸事件 */
+}
+
+.fullscreen-movable-view {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fullscreen-image {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover; /* 改为cover让图片填满整个屏幕 */
+  display: block;
+  pointer-events: auto; /* 图片可以接收点击事件 */
+}
+
+
+
+.fullscreen-info {
+  position: absolute;
+  bottom: 60rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 16rpx 32rpx;
+  border-radius: 40rpx;
+  backdrop-filter: blur(10rpx);
+  pointer-events: auto; /* 信息区域可以接收点击事件 */
+}
+
+.fullscreen-type {
+  color: white;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.swipe-dismiss {
+  animation: swipeDismiss 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes swipeReplace {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-50rpx) scale(1.05);
+    box-shadow: 0 12rpx 40rpx rgba(255, 105, 180, 0.6);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes swipeDismiss {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100rpx) scale(0.8);
+    opacity: 0.3;
+  }
+}
+
+/* 玩法说明文案 */
+.instruction-tips {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 20rpx 40rpx 40rpx;
+  background: rgba(0, 0, 0, 0.05);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.1);
+  margin-top: 20rpx;
+}
+
+.instruction-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 10rpx;
+}
+
+.instruction-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-bottom: 8rpx;
+  opacity: 0.7;
+}
+
+.instruction-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  line-height: 1.2;
+}

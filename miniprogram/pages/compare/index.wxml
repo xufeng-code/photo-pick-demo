@@ -1,0 +1,76 @@
+<view class="container">
+  <navigation-bar title="初步筛选" back="{{false}}"></navigation-bar>
+  
+  <view class="content">
+    <view class="compare-container">
+      <!-- 最佳照片容器 -->
+      <view class="photo-container best-container">
+        <view class="photo-frame best-frame">
+          <image class="photo-image" src="{{bestPhotoUrl}}" mode="aspectFill" bindload="onImageLoad" binderror="onImageError" data-type="best"></image>
+          <view class="photo-tag best-tag">最佳</view>
+          <view class="fullscreen-icon" bindtap="openFullscreen" data-photo="{{bestPhoto}}" data-type="best">
+            <image src="/assets/icons/fullscreen.svg" class="fullscreen-icon-img"></image>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 候选照片容器 -->
+      <view class="photo-container candidate-container">
+        <view class="photo-frame candidate-frame {{candidateSwipeClass}}" 
+              bindtouchstart="onTouchStart" 
+              bindtouchmove="onTouchMove" 
+              bindtouchend="onTouchEnd" 
+              data-type="candidate">
+          <image class="photo-image" src="{{currentPhotoUrl}}" mode="aspectFill" bindload="onImageLoad" binderror="onImageError" data-type="candidate"></image>
+          <view class="photo-tag candidate-tag">候选</view>
+          <view class="fullscreen-icon" bindtap="openFullscreen" data-photo="{{currentPhoto}}" data-type="candidate">
+            <image src="/assets/icons/fullscreen.svg" class="fullscreen-icon-img"></image>
+          </view>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 玩法说明文案 -->
+    <view class="instruction-tips">
+      <view class="instruction-item">
+        <image src="/assets/icons/swipe-up.svg" class="instruction-icon"></image>
+        <text class="instruction-text">上滑替换最佳</text>
+      </view>
+      <view class="instruction-item">
+        <image src="/assets/icons/swipe-down.svg" class="instruction-icon"></image>
+        <text class="instruction-text">下滑删除候选</text>
+      </view>
+      <view class="instruction-item">
+        <image src="/assets/icons/save.svg" class="instruction-icon"></image>
+        <text class="instruction-text">暂存保留候选</text>
+      </view>
+    </view>
+    
+    <view class="bottom-actions">
+      <button class="action-btn undo-btn {{keepCount === 0 ? 'undo-btn-zero' : ''}}" bindtap="undoLastAction" disabled="{{!canUndo}}">撤回</button>
+      <button class="action-btn save-btn" bindtap="saveCandidate">暂存 ({{keepCount}})</button>
+    </view>
+  </view>
+
+  <!-- 全屏显示模态框 -->
+  <view class="fullscreen-modal {{showFullscreen ? 'show' : ''}}" bindtap="closeFullscreen">
+    <view class="fullscreen-content">
+      <movable-area class="fullscreen-movable-area">
+        <movable-view 
+          class="fullscreen-movable-view" 
+          direction="all" 
+          scale="true" 
+          scale-min="1" 
+          scale-max="3" 
+          scale-value="{{imageScale}}"
+          x="{{imageX}}"
+          y="{{imageY}}"
+          bindscale="onImageScale"
+          bindchange="onImageMove"
+          bindtap="closeFullscreen">
+          <image class="fullscreen-image" src="{{fullscreenPhotoUrl}}" mode="aspectFit"></image>
+        </movable-view>
+      </movable-area>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片加载修复验证</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { border-color: #4CAF50; background-color: #f8fff8; }
+        .error { border-color: #f44336; background-color: #fff8f8; }
+        .loading { border-color: #2196F3; background-color: #f8f8ff; }
+        img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .url-display {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .status {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 图片加载修复验证</h1>
+        <p>此页面用于验证签名URL图片加载修复效果</p>
+
+        <div id="testSection" class="test-section loading">
+            <h3>📝 测试状态</h3>
+            <div id="status" class="status">正在初始化...</div>
+            <button onclick="testImageLoading()">🔄 重新测试</button>
+            <button onclick="generateNewUrl()">🆕 生成新URL</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔗 签名URL信息</h3>
+            <div id="urlInfo">
+                <div><strong>FileKey:</strong> <span id="fileKey">-</span></div>
+                <div><strong>类型:</strong> <span id="imageType">preview</span></div>
+                <div><strong>过期时间:</strong> <span id="expireTime">-</span></div>
+            </div>
+            <div class="url-display" id="signedUrl">等待生成...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🖼️ 图片显示测试</h3>
+            <div id="imageContainer">
+                <p>等待加载图片...</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 测试结果</h3>
+            <div id="results">
+                <div>✅ 签名URL生成: <span id="urlGenResult">待测试</span></div>
+                <div>✅ 图片加载: <span id="imageLoadResult">待测试</span></div>
+                <div>✅ 响应时间: <span id="responseTime">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSignedUrl = '';
+        let currentFileKey = '38037645-2f2b-469f-a41a-06946d9a28f8.jpg';
+
+        async function generateSignedUrl(fileKey = currentFileKey, type = 'preview') {
+            try {
+                const response = await fetch('http://localhost:3000/upload/signed-url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ fileKey, type })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('生成签名URL失败:', error);
+                throw error;
+            }
+        }
+
+        async function testImageLoading() {
+            const statusEl = document.getElementById('status');
+            const testSection = document.getElementById('testSection');
+            const urlGenResult = document.getElementById('urlGenResult');
+            const imageLoadResult = document.getElementById('imageLoadResult');
+            const responseTimeEl = document.getElementById('responseTime');
+
+            // 重置状态
+            testSection.className = 'test-section loading';
+            statusEl.textContent = '正在测试...';
+            urlGenResult.textContent = '测试中...';
+            imageLoadResult.textContent = '测试中...';
+
+            try {
+                // 1. 生成签名URL
+                const startTime = Date.now();
+                statusEl.textContent = '正在生成签名URL...';
+                
+                const urlData = await generateSignedUrl();
+                currentSignedUrl = urlData.url;
+
+                // 更新URL信息
+                document.getElementById('fileKey').textContent = urlData.fileKey;
+                document.getElementById('imageType').textContent = urlData.type;
+                document.getElementById('expireTime').textContent = new Date(urlData.expires).toLocaleString();
+                document.getElementById('signedUrl').textContent = urlData.url;
+
+                urlGenResult.textContent = '✅ 成功';
+                statusEl.textContent = '正在测试图片加载...';
+
+                // 2. 测试图片加载
+                const img = new Image();
+                
+                const imageLoadPromise = new Promise((resolve, reject) => {
+                    img.onload = () => {
+                        const loadTime = Date.now() - startTime;
+                        responseTimeEl.textContent = `${loadTime}ms`;
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        reject(new Error('图片加载失败'));
+                    };
+                });
+
+                img.src = currentSignedUrl;
+                
+                await imageLoadPromise;
+
+                // 显示图片
+                const imageContainer = document.getElementById('imageContainer');
+                imageContainer.innerHTML = '';
+                imageContainer.appendChild(img);
+
+                imageLoadResult.textContent = '✅ 成功';
+                statusEl.textContent = '🎉 所有测试通过！';
+                testSection.className = 'test-section success';
+
+            } catch (error) {
+                console.error('测试失败:', error);
+                statusEl.textContent = `❌ 测试失败: ${error.message}`;
+                testSection.className = 'test-section error';
+                
+                if (currentSignedUrl) {
+                    urlGenResult.textContent = '✅ 成功';
+                    imageLoadResult.textContent = `❌ 失败: ${error.message}`;
+                } else {
+                    urlGenResult.textContent = `❌ 失败: ${error.message}`;
+                    imageLoadResult.textContent = '⏸️ 跳过';
+                }
+            }
+        }
+
+        async function generateNewUrl() {
+            // 随机选择一个已知存在的文件
+            const knownFiles = [
+                '38037645-2f2b-469f-a41a-06946d9a28f8.jpg',
+                '0077fecc-4b22-4f36-b78a-9856d72156df.jpg',
+                '02a9f6e0-33f8-460e-8767-dbba3f81efbd.jpg'
+            ];
+            
+            currentFileKey = knownFiles[Math.floor(Math.random() * knownFiles.length)];
+            await testImageLoading();
+        }
+
+        // 页面加载时自动开始测试
+        window.onload = function() {
+            testImageLoading();
+        };
+    </script>
+</body>
+</html>

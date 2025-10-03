@@ -1,0 +1,60 @@
+{
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "uglifyFileName": false,
+    "enhance": false,
+    "packNpmRelationList": [],
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    },
+    "useCompilerPlugins": false,
+    "minifyWXML": true,
+    "urlCheck": false,
+    "ignoreHttpRequests": false,
+    "ignoreDevUnusedFiles": true,
+    "checkInvalidKey": true,
+    "disableUseStrict": false,
+    "useMultiFrameRuntime": false,
+    "showES6CompileOption": false
+  },
+  "compileType": "miniprogram",
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [
+      {"type": "folder", "value": "server"},
+      {"type": "folder", "value": "node_modules"},
+      {"type": "file", "value": "test-upload-ai.js"},
+      {"type": "file", "value": "test-upload-simple.ps1"},
+      {"type": "file", "value": "README.md"},
+      {"type": "file", "value": "preview.html"},
+      {"type": "file", "value": "prd.md"},
+      {"type": "file", "value": ".eslintrc.js"},
+      {"type": "file", "value": "package.json"},
+      {"type": "file", "value": "package-lock.json"}
+    ],
+    "include": []
+  },
+  "appid": "wx44eeb752d56e0c8d",
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  },
+  "libVersion": "2.19.6",
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "真机调试",
+          "pathName": "pages/home/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
+  }
+}
