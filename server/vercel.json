@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 30
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/upload",
+      "dest": "/api/upload.js"
+    },
+    {
+      "src": "/api/ai/pick",
+      "dest": "/api/ai/pick.js"
+    }
+  ]
+}
